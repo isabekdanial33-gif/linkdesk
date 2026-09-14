@@ -18,6 +18,8 @@ client=client.replace(/<section class="intro">[\s\S]*?<section id="connect"/,'<d
 client=client.replace(/<section id="downloads">[\s\S]*?<\/main>/,'</main>').replace(/<footer>[\s\S]*?<\/footer>/,'');
 client=client.replace('<title>LinkDesk — ваши устройства рядом</title>','<title>LinkDesk — устройства</title>').replace('<link rel="stylesheet" href="./style.css">','<link rel="stylesheet" href="./style.css"><link rel="stylesheet" href="./client.css">');
 client=client.replace(/<div id="host-browser">[\s\S]*?<div id="host-native"/,'<div id="host-browser"><p>Приём доступа доступен в установленном клиенте Windows, Mac или Android.</p></div><div id="host-native"');
-await fs.writeFile('web/client.html',client);await fs.writeFile('android/app/src/main/assets/index.html',client);await fs.writeFile('dist/ios/index.html',client);
+await fs.writeFile('web/client.html',client);await fs.writeFile('android/app/src/main/assets/index.html',client);await fs.writeFile('dist/ios/index.html',client.replace('</body>','<script type="module" src="./install.mjs"></script></body>'));
 await fs.copyFile('web/client.css','android/app/src/main/assets/client.css');await fs.copyFile('web/client.css','dist/ios/client.css');
+const routes={windows:'LinkDesk-Windows-0.1.0.exe',mac:'LinkDesk-Mac-arm64-0.1.0.zip','mac-intel':'LinkDesk-Mac-x64-0.1.0.zip',android:'LinkDesk-Android-0.1.0.apk'};
+const settings=JSON.parse(await fs.readFile('dist/site/vercel.json','utf8'));settings.redirects=Object.entries(routes).map(([key,file])=>({source:'/download/'+key,destination:'https://github.com/isabekdanial33-gif/linkdesk/releases/download/v0.1.0/'+file,permanent:false}));await fs.writeFile('dist/site/vercel.json',JSON.stringify(settings));
 console.log('Installer-only website, iOS PWA and native assets built.');

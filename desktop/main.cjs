@@ -4,7 +4,7 @@ let win,approved=false,allowControl=false,selected,heartbeat=0,robot=null,mouseD
 try{robot=require('@jitsi/robotjs');robot.setMouseDelay(0);robot.setKeyboardDelay(0);}catch(e){console.error('Input backend unavailable:',e.message);}
 function release(){if(robot&&mouseDown){try{robot.mouseToggle('up','left');robot.mouseToggle('up','right');}catch{}}mouseDown=false;}
 function stop(){approved=false;allowControl=false;release();if(win&&!win.isDestroyed()){win.setTitle('LinkDesk');win.webContents.send('stopped');}}
-const origin=()=>new URL('file://'+path.join(__dirname,'../web/index.html').replace(/\\/g,'/')).href;
+const origin=()=>new URL('file://'+path.join(__dirname,'../web/client.html').replace(/\\/g,'/')).href;
 function local(event){if(event.sender!==win?.webContents||!event.senderFrame||event.senderFrame!==win.webContents.mainFrame)throw Error('Forbidden');}
 function handle(name,fn){ipcMain.handle('linkdesk:'+name,async(e,...args)=>{local(e);return fn(...args);});}
 function gate(){if(!approved||Date.now()-heartbeat>20000)throw Error('Доступ не разрешён или связь потеряна');}
@@ -31,6 +31,6 @@ app.whenReady().then(()=>{
  handle('heartbeat',()=>{gate();heartbeat=Date.now();return true;});handle('stop',()=>{stop();return true;});handle('input',input);
  handle('capture',async quality=>{gate();const width=quality==='fast'?960:quality==='sharp'?1920:1280;const d=screen.getAllDisplays().find(d=>String(d.id)===selected);if(!d)throw Error('Экран отключён');const sources=await desktopCapturer.getSources({types:['screen'],thumbnailSize:{width,height:Math.round(width*d.size.height/d.size.width)},fetchWindowIcons:false});gate();const source=sources.find(s=>s.display_id===selected);if(!source||source.thumbnail.isEmpty())throw Error('Нет разрешения на запись экрана');const jpg=source.thumbnail.toJPEG(quality==='sharp'?75:quality==='fast'?40:58);return{data:'data:image/jpeg;base64,'+jpg.toString('base64'),width:d.size.width,height:d.size.height};});
  globalShortcut.register('CommandOrControl+Alt+Shift+Q',stop);setInterval(()=>{if(approved&&Date.now()-heartbeat>20000)stop();},2000);
- win.loadFile(path.join(__dirname,'../web/index.html'));
+ win.loadFile(path.join(__dirname,'../web/client.html'));
 });
 app.on('window-all-closed',()=>app.quit());app.on('will-quit',()=>{release();globalShortcut.unregisterAll();});

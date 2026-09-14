@@ -12,4 +12,12 @@ installer=installer.replace('<script src="./vendor/qrcode.js"></script>','').rep
 installer=installer.replace('href="#connect">Подключиться','href="#downloads">Скачать').replace('Установите LinkDesk, чтобы передавать экран и разрешать управление.','');
 await fs.writeFile('dist/site/index.html',installer);
 for(const name of ['app.mjs','immersive.mjs','crypto.mjs','sw.js'])await fs.rm('dist/site/'+name,{force:true});
+let client=await fs.readFile('web/index.html','utf8');
+client=client.replace('<body>','<body class="app-shell">').replace(/<header>[\s\S]*?<\/header>/,'<header class="app-header"><span class="brand"><span class="mark">↗</span>LinkDesk</span><span class="app-badge">ЗАЩИЩЁННЫЙ ДОСТУП</span><span class="app-version">0.1 Preview</span></header>');
+client=client.replace(/<section class="intro">[\s\S]*?<section id="connect"/,'<div class="app-welcome"><p>РАБОЧЕЕ ПРОСТРАНСТВО</p><h1>Какое устройство подключим?</h1><span>Всё начинается с вашего разрешения.</span></div><section id="connect"');
+client=client.replace(/<section id="downloads">[\s\S]*?<\/main>/,'</main>').replace(/<footer>[\s\S]*?<\/footer>/,'');
+client=client.replace('<title>LinkDesk — ваши устройства рядом</title>','<title>LinkDesk — устройства</title>').replace('<link rel="stylesheet" href="./style.css">','<link rel="stylesheet" href="./style.css"><link rel="stylesheet" href="./client.css">');
+client=client.replace(/<div id="host-browser">[\s\S]*?<div id="host-native"/,'<div id="host-browser"><p>Приём доступа доступен в установленном клиенте Windows, Mac или Android.</p></div><div id="host-native"');
+await fs.writeFile('web/client.html',client);await fs.writeFile('android/app/src/main/assets/index.html',client);await fs.writeFile('dist/ios/index.html',client);
+await fs.copyFile('web/client.css','android/app/src/main/assets/client.css');await fs.copyFile('web/client.css','dist/ios/client.css');
 console.log('Installer-only website, iOS PWA and native assets built.');

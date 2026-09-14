@@ -2,11 +2,16 @@ package app.linkdesk;
 import android.accessibilityservice.*;import android.view.accessibility.*;import android.graphics.Path;import android.os.*;import android.media.AudioManager;import android.content.*;import org.json.*;
 public class ControlService extends AccessibilityService {
  public static ControlService instance;protected void onServiceConnected(){instance=this;}public void onAccessibilityEvent(AccessibilityEvent e){}public void onInterrupt(){}public void onDestroy(){instance=null;super.onDestroy();}
+ private float downX,downY;private long downTime;private boolean pointerDown=false;
  private float coord(JSONObject v,String key,int size)throws JSONException{double n=v.getDouble(key);if(!Double.isFinite(n)||n<0||n>1)throw new JSONException("coordinate");return(float)(n*(size-1));}
  private void gesture(float x,float y,float tx,float ty,long duration){Path p=new Path();p.moveTo(x,y);p.lineTo(tx,ty);dispatchGesture(new GestureDescription.Builder().addStroke(new GestureDescription.StrokeDescription(p,0,Math.max(50,Math.min(1500,duration)))).build(),null,null);}
  public boolean editable(){AccessibilityNodeInfo root=getRootInActiveWindow(),node=root==null?null:root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);return node!=null&&node.isEditable();}
  public void input(JSONObject v)throws JSONException{if(!CaptureService.allowControl||!CaptureService.active||System.currentTimeMillis()-CaptureService.heartbeat>20000)return;String type=v.optString("type");int w=CaptureService.width,h=CaptureService.height;
- if(type.equals("pointer")){String action=v.optString("action");if(action.equals("click")||action.equals("long")){float x=coord(v,"x",w),y=coord(v,"y",h);gesture(x,y,x,y,action.equals("long")?700:70);}}
+ if(type.equals("pointer")){String action=v.optString("action");
+  if(action.equals("click")||action.equals("long")){float x=coord(v,"x",w),y=coord(v,"y",h);gesture(x,y,x,y,action.equals("long")?700:70);}
+  else if(action.equals("down")||action.equals("drag")){downX=coord(v,"x",w);downY=coord(v,"y",h);downTime=System.currentTimeMillis();pointerDown=true;}
+  else if(action.equals("move")){}
+  else if(action.equals("up")){if(!pointerDown)return;pointerDown=false;float x=coord(v,"x",w),y=coord(v,"y",h);long dur=System.currentTimeMillis()-downTime;double dist=Math.hypot(x-downX,y-downY);if(dist<w*0.012f)gesture(downX,downY,downX,downY,dur>600?700:70);else gesture(downX,downY,x,y,Math.max(60,Math.min(1500,dur)));}}
  else if(type.equals("gesture"))gesture(coord(v,"x",w),coord(v,"y",h),coord(v,"toX",w),coord(v,"toY",h),v.optLong("duration",300));
  else if(type.equals("scroll")){double delta=v.optDouble("y",0);gesture(w*.5f,h*(delta>0?.7f:.3f),w*.5f,h*(delta>0?.3f:.7f),300);}
  else if(type.equals("text")){String text=v.optString("text");if(text.length()>2000)return;AccessibilityNodeInfo root=getRootInActiveWindow(),focus=root==null?null:root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);if(focus!=null){Bundle args=new Bundle();String old=focus.getText()==null?"":focus.getText().toString();int start=focus.getTextSelectionStart(),end=focus.getTextSelectionEnd();if(start<0||end<0||start>old.length()||end>old.length()){start=old.length();end=start;}args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,old.substring(0,Math.min(start,end))+text+old.substring(Math.max(start,end)));focus.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT,args);}}

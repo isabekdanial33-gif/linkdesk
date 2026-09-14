@@ -1,0 +1,10 @@
+plugins { id 'com.android.application' }
+android {
+ namespace 'app.linkdesk'
+ compileSdk 35
+ defaultConfig { applicationId 'app.linkdesk.remote'; minSdk 26; targetSdk 35; versionCode 1; versionName '0.1.0' }
+ signingConfigs { release { storeFile file(System.getenv('LINKDESK_KEYSTORE') ?: '../linkdesk-release.jks'); storePassword System.getenv('LINKDESK_STORE_PASSWORD'); keyAlias 'linkdesk'; keyPassword System.getenv('LINKDESK_KEY_PASSWORD') } }
+ buildTypes { release { minifyEnabled false; signingConfig signingConfigs.release } }
+ compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+dependencies { implementation 'androidx.webkit:webkit:1.13.0' }

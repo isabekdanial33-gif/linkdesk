@@ -1,0 +1,1 @@
+<resources><string name="app_name">LinkDesk</string><string name="accessibility_description">Разрешает нажатия, жесты и ввод текста ТОЛЬКО во время сеанса, который вы отдельно подтвердили в LinkDesk. Доступ можно остановить в уведомлении или закрыть в приложении. Содержимое экрана не сохраняется в журнал.</string></resources>

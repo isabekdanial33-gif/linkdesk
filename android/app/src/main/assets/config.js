@@ -1,0 +1,1 @@
+window.LINKDESK_CONFIG = { endpoint: 'https://tekynylmdmopjbhkboci.supabase.co/functions/v1/linkdesk', downloads: 'https://github.com/isabekdanial33-gif/linkdesk/releases/tag/v0.1.0', ios: 'https://linkdesk-ios.vercel.app', site: 'https://linkdesk-remote.vercel.app' };

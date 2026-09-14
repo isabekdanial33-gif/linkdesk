@@ -11,7 +11,7 @@ installer=installer.replace(/<dialog id="session"[\s\S]*<script src="\.\/config.
 installer=installer.replace('<script src="./vendor/qrcode.js"></script>','').replace('src="./app.mjs"','src="./installer.mjs"');
 installer=installer.replace('href="#connect">Подключиться','href="#downloads">Скачать').replace('Установите LinkDesk, чтобы передавать экран и разрешать управление.','');
 await fs.writeFile('dist/site/index.html',installer);
-for(const name of ['app.mjs','immersive.mjs','crypto.mjs','sw.js'])await fs.rm('dist/site/'+name,{force:true});
+for(const name of ['app.mjs','immersive.mjs','crypto.mjs','sw.js','client.html'])await fs.rm('dist/site/'+name,{force:true});
 let client=await fs.readFile('web/index.html','utf8');
 client=client.replace('<body>','<body class="app-shell">').replace(/<header>[\s\S]*?<\/header>/,'<header class="app-header"><span class="brand"><span class="mark">↗</span>LinkDesk</span><span class="app-badge">ЗАЩИЩЁННЫЙ ДОСТУП</span><span class="app-version">0.1 Preview</span></header>');
 client=client.replace(/<section class="intro">[\s\S]*?<section id="connect"/,'<div class="app-welcome"><p>РАБОЧЕЕ ПРОСТРАНСТВО</p><h1>Какое устройство подключим?</h1><span>Всё начинается с вашего разрешения.</span></div><section id="connect"');

@@ -57,7 +57,7 @@ window.addEventListener('pagehide',()=>{native?.stop().catch(()=>{});if(state){s
 setInterval(()=>{if(state?.approved)send({type:'ping'}).catch(()=>{});},3000);
 const isIos=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)||location.hostname.includes('linkdesk-ios');if(isIos){document.body.classList.add('ios-mode');$('#ios-note').hidden=false;document.title='LinkDesk — пульт для iPhone';}
 const hash=new URLSearchParams(location.hash.slice(1));if(hash.has('room')){$('#room-input').value=hash.get('room');history.replaceState(null,'',location.pathname);}
-$('#ios-link').href=config.ios;document.querySelectorAll('[data-asset]').forEach(a=>a.href=config.downloads.replace('/tag/','/download/')+'/'+a.dataset.asset);
+if($('#ios-link'))$('#ios-link').href=config.ios;document.querySelectorAll('[data-asset]').forEach(a=>a.href=config.downloads.replace('/tag/','/download/')+'/'+a.dataset.asset);
 if(native){try{info=await native.info();$('#host-native').hidden=false;$('#host-browser').hidden=true;$('#host-description').textContent='Доступ включится только после отдельного подтверждения запроса.';for(const display of info.screens||[{id:'default',name:'Весь экран'}]){const o=document.createElement('option');o.value=display.id;o.textContent=display.name;$('#screen-select').append(o);}if(info.tv)document.body.classList.add('tv-mode');}catch(e){fail(e);}}
 import('./immersive.mjs').catch(fail);
 if(!native&&'serviceWorker'in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('./sw.js').catch(()=>{});

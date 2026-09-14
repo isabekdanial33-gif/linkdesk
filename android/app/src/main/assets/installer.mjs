@@ -1,0 +1,1 @@
+const c=window.LINKDESK_CONFIG;document.querySelectorAll('[data-asset]').forEach(a=>a.href=c.downloads.replace('/tag/','/download/')+'/'+a.dataset.asset);const link=document.querySelector('#ios-link');if(link)link.href=c.ios;

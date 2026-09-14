@@ -4,7 +4,8 @@ public class ControlService extends AccessibilityService {
  public static ControlService instance;protected void onServiceConnected(){instance=this;}public void onAccessibilityEvent(AccessibilityEvent e){}public void onInterrupt(){}public void onDestroy(){instance=null;super.onDestroy();}
  private float coord(JSONObject v,String key,int size)throws JSONException{double n=v.getDouble(key);if(!Double.isFinite(n)||n<0||n>1)throw new JSONException("coordinate");return(float)(n*(size-1));}
  private void gesture(float x,float y,float tx,float ty,long duration){Path p=new Path();p.moveTo(x,y);p.lineTo(tx,ty);dispatchGesture(new GestureDescription.Builder().addStroke(new GestureDescription.StrokeDescription(p,0,Math.max(50,Math.min(1500,duration)))).build(),null,null);}
- public void input(JSONObject v)throws JSONException{if(!CaptureService.active||System.currentTimeMillis()-CaptureService.heartbeat>20000)return;String type=v.optString("type");int w=CaptureService.width,h=CaptureService.height;
+ public boolean editable(){AccessibilityNodeInfo root=getRootInActiveWindow(),node=root==null?null:root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);return node!=null&&node.isEditable();}
+ public void input(JSONObject v)throws JSONException{if(!CaptureService.allowControl||!CaptureService.active||System.currentTimeMillis()-CaptureService.heartbeat>20000)return;String type=v.optString("type");int w=CaptureService.width,h=CaptureService.height;
  if(type.equals("pointer")){String action=v.optString("action");if(action.equals("click")||action.equals("long")){float x=coord(v,"x",w),y=coord(v,"y",h);gesture(x,y,x,y,action.equals("long")?700:70);}}
  else if(type.equals("gesture"))gesture(coord(v,"x",w),coord(v,"y",h),coord(v,"toX",w),coord(v,"toY",h),v.optLong("duration",300));
  else if(type.equals("scroll")){double delta=v.optDouble("y",0);gesture(w*.5f,h*(delta>0?.7f:.3f),w*.5f,h*(delta>0?.3f:.7f),300);}

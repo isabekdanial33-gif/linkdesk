@@ -1,0 +1,18 @@
+import {_electron as electron,chromium} from 'playwright';import path from 'node:path';import fs from 'node:fs/promises';
+const root=process.cwd();await fs.mkdir('../verification',{recursive:true});
+const launchEnv={...process.env};delete launchEnv.ELECTRON_RUN_AS_NODE;
+const app=await electron.launch({args:[root],executablePath:path.join(root,'node_modules/electron/dist/electron.exe'),env:launchEnv});const host=await app.firstWindow();host.on('pageerror',e=>console.log('HOST_ERROR',e.message));await host.waitForSelector('#host-native:not([hidden])');
+console.log('NATIVE_INFO',await host.evaluate(()=>window.linkdesk.info()));
+console.log('INPUT_WITHOUT_CONSENT',await host.evaluate(()=>window.linkdesk.input({type:'text',text:'SHOULD_NOT_TYPE'}).then(()=>false,e=>e.message)));
+await host.screenshot({path:'../verification/desktop.png'});
+const browser=await chromium.launch({channel:'msedge',headless:true});const guest=await browser.newPage({viewport:{width:1200,height:800}});guest.on('pageerror',e=>console.log('GUEST_ERROR',e.message));
+await guest.goto('https://linkdesk-ios.vercel.app');await guest.waitForSelector('#connect-form');
+await app.evaluate(({dialog})=>{dialog.showMessageBox=async()=>({response:2,checkboxChecked:false});});
+await host.click('#host-button');await host.waitForSelector('#host-details:not([hidden])');const id=await host.locator('#host-id').textContent(),password=await host.locator('#host-password').textContent();await guest.fill('#room-input',id);await guest.fill('#password-input',password);await guest.click('#connect-button');
+await guest.waitForFunction(()=>document.querySelector('#remote-video')?.videoWidth>0||document.querySelector('#remote-screen')?.naturalWidth>0,{},{timeout:90000});
+console.log('SCREEN_RECEIVED',await guest.evaluate(()=>({video:document.querySelector('#remote-video').videoWidth,image:document.querySelector('#remote-screen').naturalWidth,transport:document.querySelector('#transport').textContent,workspace:document.querySelector('#session-workspace').getBoundingClientRect().toJSON()})));
+try{await guest.waitForFunction(()=>document.querySelector('#transport').textContent.includes('Прямое'),{},{timeout:25000});}catch{}console.log('DIRECT_STATUS',await guest.evaluate(()=>({video:document.querySelector('#remote-video').videoWidth,transport:document.querySelector('#transport').textContent})));
+await host.locator('#room-input').fill('');await host.locator('#room-input').focus();await guest.evaluate(async()=>{const {input}=await import('/app.mjs');input({type:'text',text:'LinkDesk test'});});await host.waitForFunction(()=>document.querySelector('#room-input').value==='LinkDesk test',{},{timeout:15000});console.log('REAL_NATIVE_TEXT_INPUT_OK');
+await guest.screenshot({path:'../verification/session.png'});await guest.click('#disconnect');await host.waitForSelector('#host-native:not([hidden])');console.log('DISCONNECT_REVOKES',await host.evaluate(()=>window.linkdesk.input({type:'text',text:'SHOULD_NOT_TYPE'}).then(()=>false,e=>e.message)));
+await guest.setViewportSize({width:390,height:844});await guest.goto('https://linkdesk-ios.vercel.app');await guest.screenshot({path:'../verification/ios.png'});console.log('IOS_LAYOUT',await guest.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,ios:document.body.classList.contains('ios-mode')})));
+await browser.close();await app.close();

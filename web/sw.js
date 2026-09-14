@@ -1,4 +1,4 @@
-const CACHE='linkdesk-v1';const FILES=['./','./style.css','./app.mjs','./crypto.mjs','./config.js','./guide.html','./icon-192.png','./icon-512.png','./manifest.webmanifest','./vendor/qrcode.js'];
+const CACHE='linkdesk-v2';const FILES=['./','./style.css','./app.mjs','./immersive.mjs','./crypto.mjs','./config.js','./guide.html','./icon-192.png','./icon-512.png','./manifest.webmanifest','./vendor/qrcode.js'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(names=>Promise.all(names.filter(n=>n!==CACHE).map(n=>caches.delete(n))))));
 self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request.url).origin!==location.origin)return;e.respondWith(fetch(e.request).then(r=>{if(r.ok){const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));}return r;}).catch(()=>caches.match(e.request).then(r=>r||new Response('Для подключения нужен интернет',{status:503}))));});

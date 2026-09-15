@@ -1,0 +1,11 @@
+import {chromium} from 'playwright';import fs from 'node:fs/promises';import path from 'node:path';import assert from 'node:assert/strict';
+const browser=await chromium.launch({channel:'msedge',headless:true});
+try{const p=await browser.newPage({viewport:{width:390,height:844},hasTouch:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));
+ await p.route('https://linkdesk.test/**',async r=>{const name=new URL(r.request().url()).pathname.slice(1)||'index.html';if(name==='app.mjs'){await r.fulfill({contentType:'text/javascript',body:`window.events=[];export const input=e=>window.events.push(e);export const getSession=()=>({approved:true});import('./immersive.mjs');`});return;}const file=path.resolve('dist/ios',name);await r.fulfill({body:await fs.readFile(file),contentType:({'.html':'text/html','.mjs':'text/javascript','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png'})[path.extname(file)]||'application/json'});});
+ await p.goto('https://linkdesk.test');await p.waitForFunction(()=>document.querySelector('#native-keyboard').parentElement.id==='session');
+ await p.evaluate(()=>{const s=document.querySelector('#session');s.showModal();window.dispatchEvent(new CustomEvent('linkdesk-connected',{detail:{platform:'win32',control:true}}));const c=document.createElement('canvas');c.width=1440;c.height=900;document.querySelector('#remote-screen').src=c.toDataURL('image/jpeg');document.querySelector('#screen-placeholder').hidden=true;});
+ await p.waitForFunction(()=>document.querySelector('#remote-screen').naturalWidth>0);assert.equal(await p.locator('#gesture-mode').inputValue(),'trackpad');
+ const e=await p.evaluate(()=>{const v=document.querySelector('#viewport');v.dispatchEvent(new WheelEvent('wheel',{deltaX:120,deltaY:0,bubbles:true,cancelable:true}));v.dispatchEvent(new WheelEvent('wheel',{deltaX:0,deltaY:90,shiftKey:true,bubbles:true,cancelable:true}));return window.events;});assert.deepEqual(e,[{type:'scroll',x:120,y:0},{type:'scroll',x:90,y:0}]);
+ for(const [w,h]of [[390,844],[844,390],[320,568]]){await p.setViewportSize({width:w,height:h});assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);}
+ assert.deepEqual(errors,[]);console.log('PASS horizontal wheel, Shift+wheel, touch trackpad default, no layout overflow');
+}finally{await browser.close();}

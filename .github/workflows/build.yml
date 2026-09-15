@@ -24,6 +24,6 @@ jobs:
           name: mac-installers
           path: release/*.zip
       - name: Upload release assets
-        run: gh release upload v0.1.0 release/*.zip --clobber
+        run: gh release upload v0.1.1 release/*.zip --clobber
         env:
           GH_TOKEN: ${{ github.token }}

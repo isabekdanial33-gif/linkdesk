@@ -1,6 +1,6 @@
 {
   "name": "linkdesk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Consent-based remote screen control",
   "scripts": {
@@ -50,7 +50,8 @@
       "artifactName": "LinkDesk-Mac-${arch}-${version}.${ext}",
       "extendInfo": {
         "NSCameraUsageDescription": "LinkDesk не использует камеру.",
-        "NSScreenCaptureUsageDescription": "Показывать ваш экран только после вашего подтверждения."
+        "NSScreenCaptureUsageDescription": "Показывать ваш экран только после вашего подтверждения.",
+        "NSAudioCaptureUsageDescription": "Передавать системный звук только в подтверждённом сеансе."
       }
     }
   }
